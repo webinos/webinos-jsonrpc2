@@ -1,0 +1,19 @@
+{
+  "name": "webinos-jsonrpc2"
+, "version": "0.8.0-1"
+, "description": "JSON-RPC 2 implementation used be they webinos project."
+, "keywords": ["webinos", "JSON-RPC 2", "json", "rpc"]
+, "homepage": "http://www.webinos.org"
+, "author": {
+    "name": "Alexander Futász"
+  , "email": "alexander.futasz@fokus.fraunhofer.de"
+  }
+, "main": "./lib/rpc.js"
+, "directories": {
+    "lib": "./lib"
+  }
+, "repository": {
+    "type": "git"
+  , "url": "http://github.com/webinos/webinos-jsonrpc2.git"
+  }
+}
