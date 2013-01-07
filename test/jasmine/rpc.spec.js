@@ -17,11 +17,14 @@
  ******************************************************************************/
 
 describe('common.RPC', function() {
-	var webinos = require("find-dependencies")(__dirname);
 
-	var Registry = webinos.global.require(webinos.global.rpc.location, "lib/registry").Registry;
+	var Registry = require("../../lib/registry").Registry;
+	var rpc = require("../../lib/rpc");
+	var RPCHandler = rpc.RPCHandler;
+	var RPCWebinosService = rpc.RPCWebinosService;
+	var ServiceType = rpc.ServiceType;
+
 	var registry;
-	var RPCHandler = webinos.global.require(webinos.global.rpc.location).RPCHandler;
 	var rpcHandler;
 
 	beforeEach(function() {
@@ -86,8 +89,6 @@ describe('common.RPC', function() {
 			expect(rpc.method).toBeDefined();
 			expect(rpc.method).toEqual(jasmine.any(String));
 
-			expect(rpc.serviceAddress).toBeDefined();
-
 			expect(rpc.params).toBeDefined();
 			expect(rpc.params).toEqual(jasmine.any(Object));
 		});
@@ -133,7 +134,7 @@ describe('common.RPC', function() {
 			expect(Object.keys(registry.objects).length).toEqual(0);
 		});
 
-		it ('can create 2 instance of the same services', function() {
+		xit('can create 2 instance of the same services', function() {
 		    secondService = new RPCWebinosService();
 			secondService.api = service.api;
 			secondService.displayName = service.displayName;
@@ -164,8 +165,8 @@ describe('common.RPC', function() {
 					description: 'prop-description'
 				});
 				this.testListen = function(params, success, error, objRef) {
-					var rpc = rpcHandler.createRPC(objRef, 'onEvent', {testProp: 42});
-					rpcHandler.executeRPC(rpc);
+					var rpc = privRpcHandler.createRPC(objRef, 'onEvent', {testProp: 42});
+					privRpcHandler.executeRPC(rpc);
 				};
 			};
 			MockService.prototype = new RPCWebinosService();
@@ -177,14 +178,14 @@ describe('common.RPC', function() {
 				// tests error callback provided by rpc.js
 				error();
 			};
-			service = new MockService();
+			service = new MockService(rpcHandler);
 			registry.registerObject(service);
 
 			// use our own message handler write function, usually this would
 			// write the request out to the remote peer
 			var msgHandler = {
 					write: function(rpc) {
-						rpcHandler.handleMessage(rpc);
+						rpcHandler.handleMessage(rpc, 'fakeaddr', 'fakemsgid');
 					}
 			};
 			rpcHandler.setMessageHandler(msgHandler);
@@ -199,13 +200,13 @@ describe('common.RPC', function() {
 
 			// request
 			expect(rpcHandler.handleMessage).toHaveBeenCalled();
-			expect(rpcHandler.handleMessage.calls[0].args.length).toEqual(1);
+			expect(rpcHandler.handleMessage.calls[0].args.length).toEqual(3);
 			expect(rpcHandler.handleMessage.calls[0].args[0].method).toBeDefined();
 			expect(rpcHandler.handleMessage.calls[0].args[0].id).toBeDefined();
 			expect(rpcHandler.handleMessage.calls[0].args[0].params).toBeDefined();
 
 			// response
-			expect(rpcHandler.handleMessage.calls[1].args.length).toEqual(1);
+			expect(rpcHandler.handleMessage.calls[1].args.length).toEqual(3);
 			expect(rpcHandler.handleMessage.calls[1].args[0].id).toBeDefined();
 			expect(rpcHandler.handleMessage.calls[1].args[0].result).toBeDefined();
 
@@ -221,7 +222,7 @@ describe('common.RPC', function() {
 			rpcHandler.executeRPC(rpc);
 
 			// response
-			expect(rpcHandler.handleMessage.calls[1].args.length).toEqual(1);
+			expect(rpcHandler.handleMessage.calls[1].args.length).toEqual(3);
 			expect(rpcHandler.handleMessage.calls[1].args[0].id).toBeDefined();
 			expect(rpcHandler.handleMessage.calls[1].args[0].error).toBeDefined();
 			expect(rpcHandler.handleMessage.calls[1].args[0].error.code).toEqual(-31000);
@@ -235,24 +236,21 @@ describe('common.RPC', function() {
 			spyOn(rpcHandler, 'executeRPC').andCallThrough();
 
 			var rpc = rpcHandler.createRPC(service, 'testListen', [1]);
-			rpc.fromObjectRef = 2342; // this is totally a unique id
-
-			// create a temporary webinos service for our callback onEvent
-			var callback = new RPCWebinosService({api:rpc.fromObjectRef});
-			callback.onEvent = function (){}; // empty, using spyOn instead
-			spyOn(callback, 'onEvent');
-			rpcHandler.registerCallbackObject(callback);
+			rpc.onEvent = function (){}; // empty, using spyOn instead
+			spyOn(rpc, 'onEvent');
+			rpcHandler.registerCallbackObject(rpc);
 			rpcHandler.executeRPC(rpc);
 
 			// response
-			expect(rpcHandler.handleMessage.calls[1].args.length).toEqual(1);
+			expect(rpcHandler.handleMessage).toHaveBeenCalled();
+			expect(rpcHandler.handleMessage.calls[1].args.length).toEqual(3);
 			expect(rpcHandler.handleMessage.calls[1].args[0].id).toBeDefined();
 
 			// called once for request and once for response
 			expect(rpcHandler.executeRPC.calls.length).toEqual(2);
 
-			expect(callback.onEvent).toHaveBeenCalled();
-			expect(callback.onEvent.calls[0].args[0].testProp).toEqual(42);
+			expect(rpc.onEvent).toHaveBeenCalled();
+			expect(rpc.onEvent.calls[0].args[0].testProp).toEqual(42);
 		});
 	});
 });
