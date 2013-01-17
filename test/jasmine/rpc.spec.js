@@ -134,21 +134,65 @@ describe('common.RPC', function() {
 			expect(Object.keys(registry.objects).length).toEqual(0);
 		});
 
-		xit('can create 2 instance of the same services', function() {
-		    secondService = new RPCWebinosService();
+        it('cannot create 2 instances of the same services', function() {
+            var secondService;
+            secondService = new RPCWebinosService();
+            secondService.api = service.api;
+            secondService.displayName = service.displayName;
+            secondService.description = service.description;
+
+            registry.registerObject(service);
+            expect(function() {registry.registerObject(service);}).toThrow();
+            expect(function() {registry.registerObject(secondService);}).toThrow();
+        });
+
+		it('can register/unregister services for same api with different name and/or description', function() {
+        	var secondService;
+			secondService = new RPCWebinosService();
 			secondService.api = service.api;
-			secondService.displayName = service.displayName;
-			secondService.description = service.description;
+			secondService.displayName = service.displayName + "-2";
+			secondService.description = service.description + "-2";
 		    
 			registry.registerObject(service);
 			expect(Object.keys(registry.objects['prop-api']).length).toEqual(1);
-
 			registry.registerObject(secondService);
 			expect(Object.keys(registry.objects['prop-api']).length).toEqual(2);
-			
+
 			registry.unregisterObject(service);
+            expect(Object.keys(registry.objects['prop-api']).length).toEqual(1);
 			registry.unregisterObject(secondService);
+            expect(Object.keys(registry.objects).length).toEqual(0);
 		});
+
+        it('can search registered services', function() {
+            var secondService;
+            var foundService;
+            secondService = new RPCWebinosService();
+            secondService.api = service.api;
+            secondService.displayName = service.displayName + "-2";
+            secondService.description = service.description + "-2";
+
+            registry.registerObject(service);
+            registry.registerObject(secondService);
+
+            foundService = registry.getServiceWithTypeAndId(service.api, service.id);
+            for (var i in service) {
+                expect(foundService[i]).toBeDefined();
+                expect(foundService[i]).toEqual(service[i]);
+            }
+            foundService = registry.getServiceWithTypeAndId(secondService.api, secondService.id);
+            for (var i in secondService) {
+                expect(foundService[i]).toBeDefined();
+                expect(foundService[i]).toEqual(secondService[i]);
+            }
+            foundService = registry.getServiceWithTypeAndId(secondService.api, "dummyId");
+            for (var i in service) {
+                expect(foundService[i]).toBeDefined();
+                expect(foundService[i]).toEqual(service[i]);
+            }
+            foundService = registry.getServiceWithTypeAndId("dummyAPI", "dummyId");
+            expect(foundService).toBeUndefined();
+        });
 
 	});
 
