@@ -97,14 +97,12 @@ describe('common.RPC', function() {
 
 	describe('RPC service registration', function() {
 		var service;
-		var rpc;
 
 		beforeEach(function() {
 			service = new RPCWebinosService();
 			service.api = 'prop-api';
 			service.displayName = 'prop-displayName';
 			service.description = 'prop-description';
-			rpc = rpcHandler.createRPC(service, 'functionName', [1]);
 		});
 
 		it('Registry is exported from node module', function() {
@@ -146,23 +144,22 @@ describe('common.RPC', function() {
             expect(function() {registry.registerObject(secondService);}).toThrow();
         });
 
-		it('can register/unregister services for same api with different name and/or description', function() {
-            var secondService;
-		    secondService = new RPCWebinosService();
-			secondService.api = service.api;
-			secondService.displayName = service.displayName + "-2";
-			secondService.description = service.description + "-2";
-		    
-			registry.registerObject(service);
-			expect(Object.keys(registry.objects['prop-api']).length).toEqual(1);
-			registry.registerObject(secondService);
-			expect(Object.keys(registry.objects['prop-api']).length).toEqual(2);
+        it('can register/unregister services for same api with different name and/or description', function() {
+            var secondService = new RPCWebinosService();
+            secondService.api = service.api;
+            secondService.displayName = service.displayName + "-2";
+            secondService.description = service.description + "-2";
 
-			registry.unregisterObject(service);
+            registry.registerObject(service);
             expect(Object.keys(registry.objects['prop-api']).length).toEqual(1);
-			registry.unregisterObject(secondService);
+            registry.registerObject(secondService);
+            expect(Object.keys(registry.objects['prop-api']).length).toEqual(2);
+
+            registry.unregisterObject(service);
+            expect(Object.keys(registry.objects['prop-api']).length).toEqual(1);
+            registry.unregisterObject(secondService);
             expect(Object.keys(registry.objects).length).toEqual(0);
-		});
+        });
 
         it('can search registered services', function() {
             var secondService;
