@@ -147,8 +147,8 @@ describe('common.RPC', function() {
         });
 
 		it('can register/unregister services for same api with different name and/or description', function() {
-            var secondService;
-		    secondService = new RPCWebinosService();
+        	var secondService;
+			secondService = new RPCWebinosService();
 			secondService.api = service.api;
 			secondService.displayName = service.displayName + "-2";
 			secondService.description = service.description + "-2";
