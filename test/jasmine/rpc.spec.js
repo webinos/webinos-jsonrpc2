@@ -183,15 +183,11 @@ describe('common.RPC', function() {
                 expect(foundService[i]).toEqual(secondService[i]);
             }
             foundService = registry.getServiceWithTypeAndId(secondService.api, "dummyId");
-            for (var i in service) {
-                expect(foundService[i]).toBeDefined();
-                expect(foundService[i]).toEqual(service[i]);
-            }
+            expect(foundService).toBeUndefined();
             foundService = registry.getServiceWithTypeAndId("dummyAPI", "dummyId");
             expect(foundService).toBeUndefined();
         });
-
-	});
+    });
 
 	describe('RPC service request and response', function() {
 		var service;
