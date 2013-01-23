@@ -268,7 +268,7 @@ describe('common.RPC', function() {
 			expect(rpcHandler.executeRPC.calls.length).toEqual(2);
 		});
 
-		it('with successful responce for client side listener pattern', function() {
+		it('with successful responce when using RPC callback object', function() {
 			spyOn(rpcHandler, 'handleMessage').andCallThrough();
 			spyOn(rpcHandler, 'executeRPC').andCallThrough();
 
@@ -288,6 +288,36 @@ describe('common.RPC', function() {
 
 			expect(rpc.onEvent).toHaveBeenCalled();
 			expect(rpc.onEvent.calls[0].args[0].testProp).toEqual(42);
+		});
+
+		it('will call onSecurityError for a denied request when using RPC callback object', function() {
+			rpcHandler.registerPolicycheck(function(jsonRpc) {
+				if (jsonRpc.method &&jsonRpc.method.indexOf('wontBeCalled') > -1) {
+					return false;
+				}
+				return true;
+			});
+			spyOn(rpcHandler, 'handleMessage').andCallThrough();
+			spyOn(rpcHandler, 'executeRPC').andCallThrough();
+
+			var rpc = rpcHandler.createRPC(service, 'wontBeCalled', [1]);
+			rpc.onSecurityError = function (){}; // empty, using spyOn instead
+			spyOn(rpc, 'onSecurityError');
+			rpcHandler.registerCallbackObject(rpc);
+			rpcHandler.executeRPC(rpc);
+
+			// response
+			expect(rpcHandler.handleMessage).toHaveBeenCalled();
+			expect(rpcHandler.handleMessage.calls[1].args.length).toEqual(3);
+			expect(rpcHandler.handleMessage.calls[1].args[0].id).toBeDefined();
+
+			// called once for request and once for response
+			expect(rpcHandler.executeRPC.calls.length).toEqual(2);
+
+			expect(rpc.onSecurityError).toHaveBeenCalled();
+			expect(rpc.onSecurityError.calls[0].args[0].name).toEqual('SecurityError');
+
+			rpcHandler.registerPolicycheck(undefined);
 		});
 	});
 });
