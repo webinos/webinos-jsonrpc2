@@ -1,7 +1,7 @@
 {
   "name": "webinos-jsonrpc2"
 , "version": "0.8.1"
-, "description": "JSON-RPC 2 implementation used be they webinos project."
+, "description": "JSON-RPC 2 implementation used by the webinos project."
 , "keywords": ["webinos", "JSON-RPC 2", "json", "rpc"]
 , "homepage": "http://www.webinos.org"
 , "author": {
@@ -16,4 +16,15 @@
     "type": "git"
   , "url": "http://github.com/webinos/webinos-jsonrpc2.git"
   }
+, "devDependencies" : {
+    "jasmine-node": "~1.7.0"
+  }
+, "engines":
+  { "node": ">= 0.6.0"
+  , "npm": ">= 1.1.17"
+  }
+, "scripts": 
+  {
+    "test": "jasmine-node ./test/jasmine"
+  }  
 }
