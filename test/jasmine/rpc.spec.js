@@ -209,7 +209,11 @@ describe('common.RPC', function() {
 			MockService.prototype = new RPCWebinosService();
 			MockService.prototype.testSuccess = function(params, success, error, objRef) {
 				// tests success callback provided by rpc.js
-				success();
+				if (params.length) {
+					success(params[0]);
+				} else {
+					success();
+				}
 			};
 			MockService.prototype.testError = function(params, success, error, objRef) {
 				// tests error callback provided by rpc.js
@@ -228,7 +232,7 @@ describe('common.RPC', function() {
 			rpcHandler.setMessageHandler(msgHandler);
 		});
 
-		it('with successfull response', function() {
+		it('with successful response', function() {
 			spyOn(rpcHandler, 'handleMessage').andCallThrough();
 			spyOn(rpcHandler, 'executeRPC').andCallThrough();
 
@@ -249,6 +253,37 @@ describe('common.RPC', function() {
 
 			// called once for request and once for response
 			expect(rpcHandler.executeRPC.calls.length).toEqual(2);
+		});
+
+		it('with successful response and falsy param', function() {
+			spyOn(rpcHandler, 'handleMessage').andCallThrough();
+			spyOn(rpcHandler, 'executeRPC').andCallThrough();
+			var succ = {
+				ess: function(param) {}
+			}
+			spyOn(succ, 'ess').andCallThrough();
+
+			var rpc = rpcHandler.createRPC(service, 'testSuccess', [false]);
+			rpcHandler.executeRPC(rpc, succ.ess);
+
+			// request
+			expect(rpcHandler.handleMessage).toHaveBeenCalled();
+			expect(rpcHandler.handleMessage.calls[0].args.length).toEqual(3);
+			expect(rpcHandler.handleMessage.calls[0].args[0].method).toBeDefined();
+			expect(rpcHandler.handleMessage.calls[0].args[0].id).toBeDefined();
+			expect(rpcHandler.handleMessage.calls[0].args[0].params).toBeDefined();
+
+			// response
+			expect(rpcHandler.handleMessage.calls[1].args.length).toEqual(3);
+			expect(rpcHandler.handleMessage.calls[1].args[0].id).toBeDefined();
+			expect(rpcHandler.handleMessage.calls[1].args[0].result).toBeDefined();
+
+			// called once for request and once for response
+			expect(rpcHandler.executeRPC.calls.length).toEqual(2);
+			
+			expect(succ.ess).toHaveBeenCalled();
+			expect(succ.ess.calls[0].args[0]).toEqual(false);
+
 		});
 
 		it('with error response', function() {
