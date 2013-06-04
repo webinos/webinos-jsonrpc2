@@ -326,11 +326,12 @@ describe('common.RPC', function() {
 		});
 
 		it('will call onSecurityError for a denied request when using RPC callback object', function() {
-			rpcHandler.registerPolicycheck(function(jsonRpc) {
-				if (jsonRpc.method &&jsonRpc.method.indexOf('wontBeCalled') > -1) {
-					return false;
+			rpcHandler.registerPolicycheck(function(jsonRpc, from, cb) {
+				if (jsonRpc.method && jsonRpc.method.indexOf('wontBeCalled') > -1) {
+					cb(false);
+					return;
 				}
-				return true;
+				cb(true);
 			});
 			spyOn(rpcHandler, 'handleMessage').andCallThrough();
 			spyOn(rpcHandler, 'executeRPC').andCallThrough();
