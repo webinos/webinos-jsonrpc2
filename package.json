@@ -1,6 +1,6 @@
 {
   "name": "webinos-jsonrpc2"
-, "version": "0.8.7"
+, "version": "0.8.8"
 , "description": "The JSON-RPC 2 implementation used by the webinos project."
 , "keywords": ["webinos", "JSON-RPC 2", "json", "rpc"]
 , "homepage": "http://www.webinos.org"
